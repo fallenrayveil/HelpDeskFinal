@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Account</title>
+    <link rel="stylesheet" href="style2.css">
+    <!-- Fontawesome CDN Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Firebase scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyBOvgknyESxyKDuBs4eMmK12TAsomS1Fr8",
+        authDomain: "helpdesk-a1c05.firebaseapp.com",
+        projectId: "helpdesk-a1c05",
+        storageBucket: "helpdesk-a1c05.appspot.com",
+        messagingSenderId: "949146797880",
+        appId: "1:949146797880:web:714466ec4a68284947e3cd"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      var db = firebase.firestore();
+
+    // Get the currently signed-in user
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in, show user info
+        document.getElementById('userName').textContent = user.displayName;
+        document.getElementById('userEmail').textContent = user.email;
+      } else {
+        // No user is signed in, redirect to login page
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Logout button functionality
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        // Sign-out successful, redirect to login page
+        window.location.href = 'index.html';
+      }).catch((error) => {
+        // An error happened
+        alert(error.message);
+      });
+    }
+    </script>
+    <!-- Boxicons CSS -->
+    <link flex href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <nav class="sidebar locked">
+      <div class="logo_items flex">
+        <span class="nav_image">
+          <img src="./assets/logo.png" alt="logo_img" />
+        </span>
+        <span class="logo_name">Help Desk</span>
+        <i class="bx bx-lock-alt" id="lock-icon" title="Unlock Sidebar"></i>
+        <i class="bx bx-x" id="sidebar-close"></i>
+      </div>
+
+      <div class="menu_container">
+        <div class="menu_items">
+          <ul class="menu_item">
+            <div class="menu_title flex">
+              <span class="title">Dashboard</span>
+              <span class="line"></span>
+            </div>
+            <li class="item">
+              <a href="alltickets.html" class="link flex">
+                <i class="bx bx-home-alt"></i>
+                <span>All Tickets</span>
+              </a>
+            </li>
+          </ul>
+
+          <ul class="menu_item">
+            <div class="menu_title flex">
+              <span class="title">Report</span>
+              <span class="line"></span>
+            </div>
+            <li class="item">
+                <a href="managetickets.html" class="link flex">
+                  <i class="bx bx-grid-alt"></i>
+                  <span>Manage Tickets</span>
+                </a>
+              </li>
+              <li class="item">
+                <a href="reporting.html" class="link flex">
+                  <i class="bx bx-folder"></i>
+                  <span>Reporting</span>
+                </a>
+              </li>
+          </ul>
+
+          <ul class="menu_item">
+            <div class="menu_title flex">
+              <span class="title">Others</span>
+              <span class="line"></span>
+            </div>
+            <li class="item">
+              <a href="adminaccount.html" class="link flex active">
+                <i class="bx bx-cog"></i>
+                <span>Admin Account</span>
+              </a>
+            </li>
+            <li class="item">
+              <a href="#" class="link flex" onclick="logout()">
+                <i class="bx bx-flag"></i>
+                <span>Logout</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar_profile flex">
+          <span class="nav_image">
+            <img src="./assets/profile.png" alt="profile_img" />
+          </span>
+          <div class="data_text">
+            <span class="name" id="userName">Loading...</span>
+            <span class="email" id="userEmail">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </nav>

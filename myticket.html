@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <title>My Tickets</title>
+  <link rel="stylesheet" href="style2.css">
+  <!-- Fontawesome CDN Link -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyBOvgknyESxyKDuBs4eMmK12TAsomS1Fr8",
+      authDomain: "helpdesk-a1c05.firebaseapp.com",
+      projectId: "helpdesk-a1c05",
+      storageBucket: "helpdesk-a1c05.appspot.com",
+      messagingSenderId: "949146797880",
+      appId: "1:949146797880:web:714466ec4a68284947e3cd"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    // Get the currently signed-in user
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in, show user info
+        document.getElementById('userName').textContent = user.displayName;
+        document.getElementById('userEmail').textContent = user.email;
+        fetchTickets(user.uid);
+      } else {
+        // No user is signed in, redirect to login page
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Logout button functionality
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        // Sign-out successful, redirect to login page
+        window.location.href = 'index.html';
+      }).catch((error) => {
+        // An error happened
+        alert(error.message);
+      });
+    }
+
+    // Fetch tickets from Firestore
+    function fetchTickets(userId) {
+      db.collection('tickets').where('createdBy', '==', userId)
+        .get()
+        .then((querySnapshot) => {
+          const tickets = [];
+          querySnapshot.forEach((doc) => {
+            tickets.push(doc.data());
+          });
+          displayTickets(tickets);
+        })
+        .catch((error) => {
+          console.error("Error fetching tickets: ", error);
+        });
+    }
+
+    // Display tickets
+    function displayTickets(tickets) {
+      const ticketList = document.querySelector('.ticket-list');
+      ticketList.innerHTML = ''; // Clear previous tickets
+
+      tickets.forEach(ticket => {
+        const ticketItem = createTicketElement(ticket);
+        ticketList.appendChild(ticketItem);
+      });
+
+      updateTicketDisplay('all'); // Default to 'all' category
+    }
+
+    // Create ticket element
+    function createTicketElement(ticket) {
+      const ticketItem = document.createElement('div');
+      ticketItem.classList.add('ticket-item');
+      ticketItem.setAttribute('data-category', ticket.status.toLowerCase());
+
+      ticketItem.innerHTML = `
+        <div class="ticket-info">
+          <h3 class="ticket-title">${ticket.subject}</h3>
+          <p class="ticket-description">${ticket.description}</p>
+          <div class="ticket-status">
+            <span class="status-label ${ticket.status.toLowerCase()}">${ticket.status}</span>
+            <i class="bx bx-history ticket-history-icon" onclick="toggleTicketDetail(this)"></i>
+          </div>
+          <div class="ticket-detail-panel">
+            <p><strong>Level:</strong> ${ticket.level}</p>
+            <p><strong>Nomor Tiket:</strong> ${ticket.nomor_tiket}</p>
+            <p><strong>Priority:</strong> ${ticket.priority}</p>
+            <p><strong>Status:</strong> ${ticket.status}</p>
+            <p><strong>Subject:</strong> ${ticket.subject}</p>
+            <p><strong>Tanggal Pengajuan:</strong> ${ticket.tanggal_pengajuan}</p>
+          </div>
+        </div>
+      `;
+
+      return ticketItem;
+    }
+
+    // Toggle ticket detail panel
+    function toggleTicketDetail(icon) {
+      const ticketItem = icon.closest('.ticket-item');
+      const detailPanel = ticketItem.querySelector('.ticket-detail-panel');
+      detailPanel.classList.toggle('show');
+    }
+
+    // Update ticket display based on selected category
+    function updateTicketDisplay(category) {
+      document.querySelectorAll('.ticket-category').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-category') === category) {
+          btn.classList.add('active');
+        }
+      });
+
+      document.querySelectorAll('.ticket-item').forEach(item => {
+        if (category === 'all' || item.getAttribute('data-category') === category) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      if (category !== 'all') {
+        const visibleItems = Array.from(document.querySelectorAll('.ticket-item')).filter(item => item.style.display === 'block');
+        if (visibleItems.length === 0) {
+          const noDataMessage = document.createElement('p');
+          noDataMessage.classList.add('no-data-message');
+          noDataMessage.textContent = 'No data available';
+          document.querySelector('.ticket-list').appendChild(noDataMessage);
+        }
+      } else {
+        const allVisibleItems = document.querySelectorAll('.ticket-item');
+        const uniqueItems = Array.from(new Set(allVisibleItems));
+        uniqueItems.forEach(item => item.style.display = 'block');
+      }
+    }
+
+    // Event listener for category buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.ticket-category').forEach(button => {
+        button.addEventListener('click', () => {
+          const category = button.getAttribute('data-category');
+          document.querySelector('.no-data-message')?.remove();
+          updateTicketDisplay(category);
+        });
+      });
+    });
+  </script>
+</head>
+<body class="home my-ticket-page">
+  <nav class="sidebar locked">
+    <div class="logo_items flex">
+      <span class="nav_image">
+        <img src="./assets/logo.png" alt="logo_img" />
+      </span>
+      <span class="logo_name">Help Desk</span>
+      <i class="bx bx-lock-alt" id="lock-icon" title="Unlock Sidebar"></i>
+      <i class="bx bx-x" id="sidebar-close"></i>
+    </div>
+
+    <div class="menu_container">
+      <div class="menu_items">
+        <ul class="menu_item">
+          <div class="menu_title flex">
+            <span class="title">Dashboard</span>
+            <span class="line"></span>
+          </div>
+          <li class="item">
+            <a href="myticket.html" class="link flex active">
+              <i class="bx bx-home-alt"></i>
+              <span>My Tickets</span>
+            </a>
+          </li>
+        </ul>
+
+        <ul class="menu_item">
+          <div class="menu_title flex">
+            <span class="title">Report</span>
+            <span class="line"></span>
+          </div>
+          <li class="item">
+            <a href="create.html" class="link flex">
+              <i class="bx bx-cloud-upload"></i>
+              <span>Create Ticket</span>
+            </a>
+          </li>
+          <li class="item">
+            <a href="chatbot.html" class="link flex">
+              <i class="bx bxs-magic-wand"></i>
+              <span>Chat Bot</span>
+            </a>
+          </li>
+        </ul>
+
+        <ul class="menu_item">
+          <div class="menu_title flex">
+            <span class="title">Others</span>
+            <span class="line"></span>
+          </div>
+          <li class="item">
+            <a href="myaccount.html" class="link flex">
+              <i class="bx bx-cog"></i>
+              <span>My Account</span>
+            </a>
+          </li>
+          <li class="item">
+            <a href="#" class="link flex" onclick="logout()">
+              <i class="bx bx-flag"></i>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar_profile flex">
+        <span class="nav_image">
+          <img src="./assets/profile.png" alt="profile_img" />
+        </span>
+        <div class="data_text">
+          <span class="name" id="userName">Loading...</span>
+          <span class="email" id="userEmail">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="content">
+    <h1 class="content-title">My Tickets</h1>
+    <div class="ticket-categories">
+      <button class="ticket-category active" data-category="all">All</button>
+      <button class="ticket-category" data-category="new">New</button>
+      <button class="ticket-category" data-category="ongoing">On Going</button>
+      <button class="ticket-category" data-category="solved">Solved</button>
+    </div>
+    <div class="ticket-list">
+      <!-- Tickets will be dynamically generated here -->
+    </div>
+  </div>
+</body>
+</html>

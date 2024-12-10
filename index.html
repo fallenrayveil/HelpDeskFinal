@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Help Desk</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Fontawesome CDN Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Firebase scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyBOvgknyESxyKDuBs4eMmK12TAsomS1Fr8",
+        authDomain: "helpdesk-a1c05.firebaseapp.com",
+        projectId: "helpdesk-a1c05",
+        storageBucket: "helpdesk-a1c05.appspot.com",
+        messagingSenderId: "949146797880",
+        appId: "1:949146797880:web:714466ec4a68284947e3cd"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      var db = firebase.firestore();
+    </script>
+  </head>
+<body class="login-page">
+  <div class="container">
+    <input type="checkbox" id="flip">
+    <div class="cover">
+      <div class="front">
+        <img src="./assets/front-image.jpg" alt="Front Image">
+        <div class="text">
+          <span class="text-1">Help Desk<br>Bank UMKM Jatim</span>
+          <span class="text-2">Mitra UMKM Terpercaya</span>
+        </div>
+      </div>
+      <div class="back">
+        <img src="./assets/back-image.jpg" alt="Back Image">
+        <div class="text">
+          <span class="text-1">Help Desk<br>Bank UMKM Jatim</span>
+          <span class="text-2">Mitra UMKM Terpercaya</span>
+        </div>
+      </div>
+    </div>
+    <div class="forms">
+        <div class="form-content">
+          <div class="login-form">
+            <div class="title">Login</div>
+          <form id="loginForm">
+            <div class="input-boxes">
+              <div class="input-box">
+                <i class="fas fa-envelope"></i>
+                <input type="text" id="loginEmail" placeholder="Enter your email" required>
+              </div>
+              <div class="input-box">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required>
+              </div>
+              <div class="text"><a href="#">Forgot password?</a></div>
+              <div class="button input-box">
+                <input type="submit" value="Submit">
+              </div>
+              <div class="text sign-up-text">Don't have an account? <label for="flip">SignUp now</label></div>
+            </div>
+        </form>
+      </div>
+        <div class="signup-form">
+          <div class="title">Signup</div>
+        <form id="signupForm">
+            <div class="input-boxes">
+              <div class="input-box">
+                <i class="fas fa-user"></i>
+                <input type="text" id="signupName" placeholder="Enter your name" required>
+              </div>
+              <div class="input-box">
+                <i class="fas fa-envelope"></i>
+                <input type="text" id="signupEmail" placeholder="Enter your email" required>
+              </div>
+              <div class="input-box">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="signupPassword" placeholder="Enter your password" required>
+              </div>
+              <div class="button input-box">
+                <input type="submit" value="Submit">
+              </div>
+              <div class="text sign-up-text">Already have an account? <label for="flip">Login now</label></div>
+            </div>
+      </form>
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      var email = document.getElementById('loginEmail').value;
+      var password = document.getElementById('loginPassword').value;
+
+      // Firebase login
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // Signed in
+          var user = userCredential.user;
+
+          // Fetch user data from Firestore
+          db.collection('users').doc(user.uid).get().then((doc) => {
+            if (doc.exists) {
+              var userData = doc.data();
+              // Save user data to browser storage
+              localStorage.setItem('userData', JSON.stringify(userData));
+
+              // Redirect based on user role (you can customize this part)
+              if (user.email === 'rayveil@gmail.com') {
+                window.location.href = 'homeadmin.html';
+              } else {
+                window.location.href = 'home.html';
+              }
+            } else {
+              alert("No such user data in Firestore!");
+            }
+          }).catch((error) => {
+            console.error("Error fetching user data: ", error);
+          });
+        })
+        .catch((error) => {
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          alert(errorMessage);
+        });
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      var name = document.getElementById('signupName').value;
+      var email = document.getElementById('signupEmail').value;
+      var password = document.getElementById('signupPassword').value;
+
+      // Firebase signup
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          alert("Sign Up Berhasil, Silahkan Login");
+          // Signed in 
+          var user = userCredential.user;
+          
+          // Save the user data to Firestore
+          db.collection('users').doc(user.uid).set({
+            uid: user.uid,
+            name: name,
+            email: email,
+          }).then(() => {
+            // Update user profile
+            user.updateProfile({
+              displayName: name
+            }).then(() => {
+              window.location.href = 'index.html';
+            }).catch((error) => {
+              alert(error.message);
+            });
+          }).catch((error) => {
+            alert(error.message);
+          });
+        })
+        .catch((error) => {
+          const errorCode=error.code;
+          if(errorCode==='auth/invalid-credential'){
+              showMessage('Incorrect Email or Password', 'signInMessage');
+          }
+          else{
+              showMessage('Account does not Exist', 'signInMessage');
+          }
+        });
+    });
+  </script>
+</body>
+</html>

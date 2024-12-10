@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <title>All Tickets</title>
+  <link rel="stylesheet" href="style2.css">
+  <!-- Fontawesome CDN Link -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyBOvgknyESxyKDuBs4eMmK12TAsomS1Fr8",
+      authDomain: "helpdesk-a1c05.firebaseapp.com",
+      projectId: "helpdesk-a1c05",
+      storageBucket: "helpdesk-a1c05.appspot.com",
+      messagingSenderId: "949146797880",
+      appId: "1:949146797880:web:714466ec4a68284947e3cd"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    // Get the currently signed-in user
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in, show user info
+        document.getElementById('userName').textContent = user.displayName;
+        document.getElementById('userEmail').textContent = user.email;
+        fetchTicketCounts();
+      } else {
+        // No user is signed in, redirect to login page
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Logout button functionality
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        // Sign-out successful, redirect to login page
+        window.location.href = 'index.html';
+      }).catch((error) => {
+        // An error happened
+        alert(error.message);
+      });
+    }
+
+    // Fetch ticket counts from Firestore
+    function fetchTicketCounts() {
+      db.collection('tickets').get()
+        .then((querySnapshot) => {
+          const ticketCounts = {
+            new: 0,
+            ongoing: 0,
+            solved: 0
+          };
+          querySnapshot.forEach((doc) => {
+            const ticketData = doc.data();
+            if (ticketData.status === 'New') {
+              ticketCounts.new++;
+            } else if (ticketData.status === 'On Going') {
+              ticketCounts.ongoing++;
+            } else if (ticketData.status === 'Solved') {
+              ticketCounts.solved++;
+            }
+          });
+          displayTicketCards(ticketCounts);
+        })
+        .catch((error) => {
+          console.error("Error fetching ticket counts: ", error);
+        });
+    }
+
+    // Display ticket count cards
+    function displayTicketCards(ticketCounts) {
+      const allTickets = ticketCounts.new + ticketCounts.ongoing + ticketCounts.solved;
+
+      document.getElementById('newCount').textContent = ticketCounts.new;
+      document.getElementById('ongoingCount').textContent = ticketCounts.ongoing;
+      document.getElementById('solvedCount').textContent = ticketCounts.solved;
+      document.getElementById('allCount').textContent = allTickets;
+    }
+  </script>
+  <!-- Boxicons CSS -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="sidebar locked">
+    <div class="logo_items flex">
+      <span class="nav_image">
+        <img src="./assets/logo.png" alt="logo_img" />
+      </span>
+      <span class="logo_name">Help Desk</span>
+      <i class="bx bx-lock-alt" id="lock-icon" title="Unlock Sidebar"></i>
+      <i class="bx bx-x" id="sidebar-close"></i>
+    </div>
+
+    <div class="menu_container">
+      <div class="menu_items">
+        <ul class="menu_item">
+          <div class="menu_title flex">
+            <span class="title">Dashboard</span>
+            <span class="line"></span>
+          </div>
+          <li class="item">
+            <a href="alltickets.html" class="link flex active">
+              <i class="bx bx-home-alt"></i>
+              <span>All Tickets</span>
+            </a>
+          </li>
+        </ul>
+
+        <ul class="menu_item">
+          <div class="menu_title flex">
+            <span class="title">Report</span>
+            <span class="line"></span>
+          </div>
+          <li class="item">
+            <a href="managetickets.html" class="link flex">
+              <i class="bx bx-grid-alt"></i>
+              <span>Manage Tickets</span>
+            </a>
+          </li>
+          <li class="item">
+            <a href="reporting.html" class="link flex">
+              <i class="bx bx-folder"></i>
+              <span>Reporting</span>
+            </a>
+          </li>
+        </ul>
+
+        <ul class="menu_item">
+          <div class="menu_title flex">
+            <span class="title">Others</span>
+            <span class="line"></span>
+          </div>
+          <li class="item">
+            <a href="adminaccount.html" class="link flex">
+              <i class="bx bx-cog"></i>
+              <span>Admin Account</span>
+            </a>
+          </li>
+          <li class="item">
+            <a href="#" class="link flex" onclick="logout()">
+              <i class="bx bx-flag"></i>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar_profile flex">
+        <span class="nav_image">
+          <img src="./assets/profile.png" alt="profile_img" />
+        </span>
+        <div class="data_text">
+          <span class="name" id="userName">Loading...</span>
+          <span class="email" id="userEmail">Loading...</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="content">
+    <h1 class="content-title">All Tickets</h1>
+    <div class="ticket-categories">
+      <div class="ticket-category-card new">
+        <div class="ticket-category-icon">
+          <i class="bx bxs-badge-check bx-lg"></i>
+        </div>
+        <div class="ticket-category-count" id="newCount">0</div>
+        <div class="ticket-category-label">New Tickets</div>
+      </div>
+      <div class="ticket-category-card ongoing">
+        <div class="ticket-category-icon">
+          <i class="bx bx-time-five bx-lg"></i>
+        </div>
+        <div class="ticket-category-count" id="ongoingCount">0</div>
+        <div class="ticket-category-label">Ongoing Tickets</div>
+      </div>
+      <div class="ticket-category-card solved">
+        <div class="ticket-category-icon">
+          <i class="bx bx-check-circle bx-lg"></i>
+        </div>
+        <div class="ticket-category-count" id="solvedCount">0</div>
+        <div class="ticket-category-label">Solved Tickets</div>
+      </div>
+      <div class="ticket-category-card all">
+        <div class="ticket-category-icon">
+          <i class="bx bx-bar-chart bx-lg"></i>
+        </div>
+        <div class="ticket-category-count" id="allCount">0</div>
+        <div class="ticket-category-label">Total Tickets</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

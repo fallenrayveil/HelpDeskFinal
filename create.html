@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Create Tickets</title>
+    <link rel="stylesheet" href="style2.css">
+    <!-- Fontawesome CDN Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Firebase scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyBOvgknyESxyKDuBs4eMmK12TAsomS1Fr8",
+        authDomain: "helpdesk-a1c05.firebaseapp.com",
+        projectId: "helpdesk-a1c05",
+        storageBucket: "helpdesk-a1c05.appspot.com",
+        messagingSenderId: "949146797880",
+        appId: "1:949146797880:web:714466ec4a68284947e3cd"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      var db = firebase.firestore();
+
+      // Get the currently signed-in user
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          // User is signed in, show user info
+          document.getElementById('userName').textContent = user.displayName;
+          document.getElementById('userEmail').textContent = user.email;
+        } else {
+          // No user is signed in, redirect to login page
+          window.location.href = 'index.html';
+        }
+      });
+
+      // Logout button functionality
+      function logout() {
+        firebase.auth().signOut().then(() => {
+          // Sign-out successful, redirect to login page
+          window.location.href = 'index.html';
+        }).catch((error) => {
+          // An error happened
+          alert(error.message);
+        });
+      }
+    </script>
+    <!-- Boxicons CSS -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="script.js" defer></script>
+</head>
+<body class="home my-ticket-page">
+    <nav class="sidebar locked">
+        <div class="logo_items flex">
+            <span class="nav_image">
+                <img src="./assets/logo.png" alt="logo_img">
+            </span>
+            <span class="logo_name">Help Desk</span>
+            <i class="bx bx-lock-alt" id="lock-icon" title="Unlock Sidebar"></i>
+            <i class="bx bx-x" id="sidebar-close"></i>
+        </div>
+
+        <div class="menu_container">
+            <div class="menu_items">
+                <ul class="menu_item">
+                    <div class="menu_title flex">
+                        <span class="title">Dashboard</span>
+                        <span class="line"></span>
+                    </div>
+                    <li class="item">
+                        <a href="myticket.html" class="link flex">
+                            <i class="bx bx-home-alt"></i>
+                            <span>My Tickets</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="menu_item">
+                    <div class="menu_title flex">
+                        <span class="title">Report</span>
+                        <span class="line"></span>
+                    </div>
+                    <li class="item">
+                        <a href="create.html" class="link flex active">
+                            <i class="bx bx-cloud-upload"></i>
+                            <span>Create Ticket</span>
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="chatbot.html" class="link flex">
+                            <i class="bx bxs-magic-wand"></i>
+                            <span>Chat Bot</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="menu_item">
+                    <div class="menu_title flex">
+                        <span class="title">Others</span>
+                        <span class="line"></span>
+                    </div>
+                    <li class="item">
+                        <a href="myaccount.html" class="link flex">
+                            <i class="bx bx-cog"></i>
+                            <span>My Account</span>
+                        </a>
+                    </li>
+                    <li class="item">
+                        <a href="#" class="link flex" onclick="logout()">
+                          <i class="bx bx-flag"></i>
+                          <span>Logout</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div class="sidebar_profile flex">
+                    <span class="nav_image">
+                      <img src="./assets/profile.png" alt="profile_img">
+                    </span>
+                    <div class="data_text">
+                      <span class="name" id="userName">Loading...</span>
+                      <span class="email" id="userEmail">Loading...</span>
+                    </div>
+                  </div>
+        </div>
+    </nav>
+
+    <!-- Main content area -->
+    <div class="content">
+        <div class="form-container">
+            <h2>Create New Ticket</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="file" style="font-weight: bold;">Upload Letter</label>
+                    <p>Template surat dapat diunduh <a href="https://drive.google.com/drive/folders/1eLF0TrEpjOjMyFGk5tpBvkeFhPWI7ZsS?usp=sharing" target="_blank">disini</a>.</p>
+                    <input type="file" class="form-control-file" id="file" name="file" accept="image/*" required>
+                </div>
+                <button type="button" class="btn btn-secondary btn-block" id="uploadButton">Unggah dan Scan</button>
+            </form>
+            <form id="createTicketForm">
+                <div class="form-group">
+                    <label for="subject" style="font-weight: bold;">Subject</label>
+                    <input type="text" class="form-control" id="subject" name="subject"
+                        placeholder="Masalah atau isu" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="escalationLevel" style="font-weight: bold;">Level</label>
+                    <input type="text" class="form-control" id="escalationLevel" name="escalationLevel"
+                        placeholder="Level eskalasi hasil pemindaian" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="priorityLevel" style="font-weight: bold;">Priority</label>
+                    <input type="text" class="form-control" id="priorityLevel" name="priorityLevel"
+                        placeholder="Level prioritas hasil pemindaian" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="additionalInfo" style="font-weight: bold;">Description</label>
+                    <textarea class="form-control" id="additionalInfo" name="additionalInfo" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">OPEN TICKET</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('uploadButton').addEventListener('click', function() {
+        var formData = new FormData();
+        var file = document.getElementById('file').files[0];
+        formData.append('file', file);
+
+        fetch('http://127.0.0.1:5000/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.subject) {
+                document.getElementById('subject').value = data.subject;
+                document.getElementById('escalationLevel').value = data.level;
+                document.getElementById('priorityLevel').value = data.priority;
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to upload and scan file');
+        });
+    });
+
+    document.getElementById('createTicketForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var subject = document.getElementById('subject').value;
+      var level = document.getElementById('escalationLevel').value;
+      var priority = document.getElementById('priorityLevel').value;
+      var description = document.getElementById('additionalInfo').value;
+      var user = firebase.auth().currentUser;
+      var nomor_tiket = 'TICKET_' + Math.floor(Math.random() * 1000000); // Random ticket number generator
+      var tanggal_pengajuan = new Date().toLocaleDateString('id-ID').split('/').reverse().join('-');
+
+      if (subject && level && priority) {
+        db.collection('tickets').add({
+          description: description,
+          level: level,
+          nomor_tiket: nomor_tiket,
+          priority: priority,
+          status: 'New',
+          subject: subject,
+          tanggal_pengajuan: tanggal_pengajuan,
+          createdBy: user.displayName
+        })
+        .then(() => {
+          alert('Ticket successfully created!');
+          document.getElementById('createTicketForm').reset();
+        })
+        .catch((error) => {
+          console.error('Error creating ticket:', error);
+          alert('Failed to create ticket');
+        });
+      } else {
+        alert('Please ensure all required fields are populated');
+      }
+    });
+    </script>
+</body>
+</html>
